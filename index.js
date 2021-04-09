@@ -112,50 +112,57 @@ async function deletePackageVersion(org, package_type, package_name, version, ve
 
 // getPackageNames searches packages for a given repo and returns the list of package names.
 async function getPackageNames(owner, repo, package_type, token) {
-    const query = `query {
-        repository(owner: "${owner}", name: "${repo}") {
-          name
-          packages(first: 20, packageType: ${package_type.toUpperCase()}) {
-            totalCount,
-            nodes {
-              name,
-              id
+    var packages = []
+    let continuePagination = false
+    let afterId = ""
+    do {
+        const query = `query {
+            repository(owner: "${owner}", name: "${repo}") {
+              name
+              packages(first: 1, after: "${afterId}", packageType: ${package_type.toUpperCase()}) {
+                totalCount
+                nodes {
+                  name
+                  id
+                }
+                pageInfo {
+                    endCursor
+                    hasNextPage
+                }
+              }
             }
-          }
+        }`;
+        try {
+            const myRequest = request.defaults({
+                headers: {
+                    authorization: `token ${token}`,
+                },
+                request: {
+                  hook(request, options) {
+                    return request(options);
+                  },
+                },
+            });
+            const myGraphql = withCustomRequest(myRequest);
+            const result = await myGraphql(query);
+            if (result.repository.packages.nodes == null) {
+                console.log(`No packages found in the org`);
+                return
+            }
+            packages.push(...result.repository.packages.nodes);
+            continuePagination = result.repository.packages.pageInfo.hasNextPage;
+            afterId = result.repository.packages.pageInfo.endCursor;
+        } catch (error) {
+            core.setFailed(error);
+            return;
         }
-    }`;
+    } while(continuePagination)
 
-    let requestCounter = 0;
-    const myRequest = request.defaults({
-        headers: {
-            authorization: `token ${token}`,
-        },
-        request: {
-          hook(request, options) {
-            requestCounter++;
-            return request(options);
-          },
-        },
-    });
-
-    try {
-        const myGraphql = withCustomRequest(myRequest);
-        const result = await myGraphql(query);
-
-        if (result.repository.packages.nodes == null) {
-            console.log(`No packages found in the org`);
-            return
-        }
-        var packageNames = [];
-        const packages = result.repository.packages.nodes;
-        for(i = 0; i < packages.length; i++) {
-            packageNames.push(packages[i].name)
-        }
-        return packageNames;
-    } catch (error) {
-        core.setFailed(error);
-        return;
+    var packageNames = [];
+    for(i = 0; i < packages.length; i++) {
+        packageNames.push(packages[i].name)
     }
+    return packageNames;
 }
 
 async function run() {
