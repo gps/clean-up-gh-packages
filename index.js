@@ -1,4 +1,4 @@
-const { Octokit } = require("@octokit/core");
+const { Octokit } = require("@octokit/rest");
 const core = require("@actions/core");
 const { request } = require("@octokit/request");
 const { withCustomRequest } = require("@octokit/graphql");
@@ -72,12 +72,12 @@ async function findAndDeletePackageVersions(org, package_type, package_name, noO
     });
 
     if (org === null || org === "") {
-        await octokit.request('GET /user/packages/{package_type}/{package_name}/versions', {
+        await octokit.paginate('GET /user/packages/{package_type}/{package_name}/versions', {
             package_type: package_type,
             package_name: package_name
         });
     } else {
-        await octokit.request('GET /orgs/{org}/packages/{package_type}/{package_name}/versions', {
+        await octokit.paginate('GET /orgs/{org}/packages/{package_type}/{package_name}/versions', {
             org: org,
             package_type: package_type,
             package_name: package_name
