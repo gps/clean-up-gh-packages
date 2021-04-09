@@ -119,7 +119,7 @@ async function getPackageNames(owner, repo, package_type, token) {
         const query = `query {
             repository(owner: "${owner}", name: "${repo}") {
               name
-              packages(first: 1, after: "${afterId}", packageType: ${package_type.toUpperCase()}) {
+              packages(first: 20, after: "${afterId}", packageType: ${package_type.toUpperCase()}) {
                 totalCount
                 nodes {
                   name
