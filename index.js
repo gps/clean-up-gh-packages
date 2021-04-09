@@ -14,27 +14,22 @@ function isDeletableVersion(version) {
     return true
 }
 
-function isOlderThanNumberOfDays(package, noOfDays, package_name) {
+function isOlderThanNumberOfDays(package, noOfDays) {
     const createdDate = new Date(package.created_at);
     const today = new Date();
     var time_difference = today.getTime() - createdDate.getTime();  
     //calculate days difference by dividing total milliseconds in a day  
     var days_difference = time_difference / (1000 * 60 * 60 * 24);  
-    console.log(`package ${package_name} of version ${package.name} is ${days_difference} days older`)
     if (days_difference > noOfDays) {
         return true
     }
     return false
 }
 
-function getPackagesToBeDeleted(packages, noOfDays, package_name)  {
+function getPackagesToBeDeleted(packages, noOfDays)  {
     var result = []
     for (var i=0; i < packages.length; i++) {
-        console.log(`Package ${package_name} of version ${packages[i].name}:
-         isDeletableVersion: ${isDeletableVersion(packages[i].name)}
-         isOlderThanNumberOfDays: ${isOlderThanNumberOfDays(packages[i], noOfDays, package_name)}
-        `)
-        if (isDeletableVersion(packages[i].name) && isOlderThanNumberOfDays(packages[i], noOfDays, package_name)) {
+        if (isDeletableVersion(packages[i].name) && isOlderThanNumberOfDays(packages[i], noOfDays)) {
             result.push(packages[i]);
         }
     }
@@ -50,7 +45,7 @@ async function findAndDeletePackageVersions(org, package_type, package_name, noO
             console.log(`Package ${package_name} doesn't contain any version.`)
             return
         }
-        var packages = getPackagesToBeDeleted(response.data, noOfDays, package_name)
+        var packages = getPackagesToBeDeleted(response.data, noOfDays)
         if (packages.length < 1) {
             console.log(`Package ${package_name} doesn't contain any version older than ${noOfDays} days.`)
             return
