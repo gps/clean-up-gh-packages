@@ -20,7 +20,7 @@ function isOlderThanNumberOfDays(package, noOfDays, package_name) {
     var time_difference = today.getTime() - createdDate.getTime();  
     //calculate days difference by dividing total milliseconds in a day  
     var days_difference = time_difference / (1000 * 60 * 60 * 24);  
-    console.log(`package ${package_name} of version ${package.name} is ${time_difference} days older`)
+    console.log(`package ${package_name} of version ${package.name} is ${days_difference} days older`)
     if (days_difference > noOfDays) {
         return true
     }
