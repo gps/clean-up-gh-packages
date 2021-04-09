@@ -15,9 +15,9 @@ function isDeletableVersion(version) {
 }
 
 function isOlderThanNumberOfDays(package, noOfDays) {
-    const updatedDate = new Date(package.updated_at);
+    const createdDate = new Date(package.created_at);
     const today = new Date();
-    var time_difference = today.getTime() - updatedDate.getTime();  
+    var time_difference = today.getTime() - createdDate.getTime();  
     //calculate days difference by dividing total milliseconds in a day  
     var days_difference = time_difference / (1000 * 60 * 60 * 24);  
 
