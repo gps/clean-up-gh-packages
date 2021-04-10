@@ -79,7 +79,7 @@ async function findAndDeletePackageVersions(org, package_type, package_name, noO
             if (response.data && response.data.length > 0) {
                 var packages = getPackagesToBeDeleted(response.data, noOfDays)
                 for (var i=0; i < packages.length; i++) {
-                    deletePackageVersion(org, package_type, package_name, packages[i].name,  packages[i].id, token);
+                    await deletePackageVersion(org, package_type, package_name, packages[i].name,  packages[i].id, token);
                 }
                 continuePagination = true;
                 page++;
@@ -187,7 +187,7 @@ async function run() {
 
     var packageNames = await getPackageNames(owner, repo, package_type, token)
     for (i = 0; i< packageNames.length; i++) {
-        findAndDeletePackageVersions(org, package_type, packageNames[i], noOfDays, token);
+        await findAndDeletePackageVersions(org, package_type, packageNames[i], noOfDays, token);
     }
 }
 
