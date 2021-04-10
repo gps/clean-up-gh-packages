@@ -48,14 +48,15 @@ async function deletePackageVersion(org, package_type, package_name, version, ve
 
     // Handle response
     octokit.hook.after("request", async (response, options) => {
-        console.log(`Deleted version ${version} successfully`);
+        console.log(`${package_name}: Deleted package version ${version} successfully`);
     });
 
     // Handle error
     octokit.hook.error("request", async (error, options) => {
         if (error != null) {
             console.log(`Unable to delete version ${version}. Error: ${error}`)
-            core.setFailed(error);
+            core.warning(error);
+            process.exit(5)
             return;
         }
     });
