@@ -183,7 +183,7 @@ async function run() {
         var deletablePackages = [];
         await findDeletablePackageVersions(org, package_type, packageNames[i], noOfDays, token, 1 ,deletablePackages); 
         for (var j=0; j < deletablePackages.length; j++) {
-            await deletePackageVersion(org, package_type, packageNames[i], packages[j].name,  packages[j].id, token);
+            await deletePackageVersion(org, package_type, packageNames[i], deletablePackages[j].name,  deletablePackages[j].id, token);
         }
     }
 }
