@@ -56,7 +56,7 @@ async function deletePackageVersion(org, package_type, package_name, version, ve
         if (error != null) {
             console.log(`Unable to delete version ${version}. Error: ${error}`)
             core.warning(error);
-            process.exit(0)
+            process.exit(0);
             return;
         }
     });
@@ -77,25 +77,23 @@ async function deletePackageVersion(org, package_type, package_name, version, ve
     }
 }
 
-async function findAndDeletePackageVersions(org, package_type, package_name, noOfDays, token, page) {
+async function findDeletablePackageVersions(org, package_type, package_name, noOfDays, token, page, deletablePackages) {
     const octokit = new Octokit({ auth: token });
     octokit.hook.after("request", async (response, options) => {
         if (response.data && response.data.length > 0) {
-            var packages = getPackagesToBeDeleted(response.data, noOfDays)
-            for (var i=0; i < packages.length; i++) {
-                await deletePackageVersion(org, package_type, package_name, packages[i].name,  packages[i].id, token);
-            }
+            var packages = getPackagesToBeDeleted(response.data, noOfDays);
+            deletablePackages.push(...packages);
             page = ++page;
-            await findAndDeletePackageVersions(org, package_type, package_name, noOfDays, token, page);
+            await findDeletablePackageVersions(org, package_type, package_name, noOfDays, token, page, deletablePackages);
         } else {
-            return
+            return;
         }
     });
     
-        // Handle error
+    // Handle error
     octokit.hook.error("request", async (error, options) => {
         core.setFailed(error.message);
-        process.exit(0)
+        process.exit(0);
     });
     
     if (org === null || org === "") {
@@ -189,7 +187,11 @@ async function run() {
 
     var packageNames = await getPackageNames(owner, repo, package_type, token)
     for (i = 0; i< packageNames.length; i++) {
-        await findAndDeletePackageVersions(org, package_type, packageNames[i], noOfDays, token, 1);
+        var deletablePackages = [];
+        await findDeletablePackageVersions(org, package_type, packageNames[i], noOfDays, token, 1 ,deletablePackages); 
+        for (var j=0; j < deletablePackages.length; j++) {
+            await deletePackageVersion(org, package_type, packageNames[i], packages[j].name,  packages[j].id, token);
+        }
     }
 }
 
