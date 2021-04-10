@@ -43,6 +43,39 @@ function getPackagesToBeDeleted(packages, noOfDays)  {
     return result
 }
 
+async function deletePackageVersion(org, package_type, package_name, version, version_id, token) {
+    const octokit = new Octokit({ auth: token });
+
+    // Handle response
+    octokit.hook.after("request", async (response, options) => {
+        console.log(`Deleted version ${version} successfully`);
+    });
+
+    // Handle error
+    octokit.hook.error("request", async (error, options) => {
+        if (error != null) {
+            console.log(`Unable to delete version ${version}. Error: ${error}`)
+            core.setFailed(error);
+            return;
+        }
+    });
+
+    if (org === null || org === "") {
+        await octokit.request('DELETE /user/packages/{package_type}/{package_name}/versions/{version_id}', {
+            package_type: package_type,
+            package_name: package_name,
+            version_id: version_id
+        });
+    } else {
+        await octokit.request('DELETE /orgs/{org}/packages/{package_type}/{package_name}/versions/{version_id}', {
+            org: org,
+            package_type: package_type,
+            package_name: package_name,
+            version_id: version_id
+        });
+    }
+}
+
 async function findAndDeletePackageVersions(org, package_type, package_name, noOfDays, token) {
     const octokit = new Octokit({ auth: token });
     var continuePagination = false;
@@ -50,9 +83,6 @@ async function findAndDeletePackageVersions(org, package_type, package_name, noO
     do {
         octokit.hook.after("request", async (response, options) => {
             if (response.data && response.data.length > 0) {
-                for(var i=0; i< response.data.length; i++) {
-                    console.log(`package ${package_name} version: ${response.data[i].name}`)
-                }
                 var packages = getPackagesToBeDeleted(response.data, noOfDays)
                 for (var i=0; i < packages.length; i++) {
                     deletePackageVersion(org, package_type, package_name, packages[i].name,  packages[i].id, token);
