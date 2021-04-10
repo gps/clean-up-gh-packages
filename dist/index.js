@@ -81,9 +81,6 @@ async function findAndDeletePackageVersions(org, package_type, package_name, noO
     const octokit = new Octokit({ auth: token });
     octokit.hook.after("request", async (response, options) => {
         if (response.data && response.data.length > 0) {
-            for(var i=0; i< response.data.length; i++) {
-                console.log(`page ${page} package ${package_name} version: ${response.data[i].name}`)
-            }
             var packages = getPackagesToBeDeleted(response.data, noOfDays)
             for (var i=0; i < packages.length; i++) {
                 await deletePackageVersion(org, package_type, package_name, packages[i].name,  packages[i].id, token);
