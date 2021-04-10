@@ -78,7 +78,7 @@ async function findAndDeletePackageVersions(org, package_type, package_name, noO
             for (var i=0; i < packages.length; i++) {
                 await deletePackageVersion(org, package_type, package_name, packages[i].name,  packages[i].id, token);
             }
-            page++;
+            page = ++page;
             await findAndDeletePackageVersions(org, package_type, package_name, noOfDays, token, page);
         } else {
             return
@@ -92,16 +92,17 @@ async function findAndDeletePackageVersions(org, package_type, package_name, noO
     });
     
     if (org === null || org === "") {
-        await octokit.request('GET /user/packages/{package_type}/{package_name}/versions?page_limit=1&page={page}', {
+        await octokit.request('GET /user/packages/{package_type}/{package_name}/versions?page_limit=99&page={page}', {
             package_type: package_type,
             package_name: package_name,
             page: page
         });
     } else {
-        await octokit.request('GET /orgs/{org}/packages/{package_type}/{package_name}/versions', {
+        await octokit.request('GET /orgs/{org}/packages/{package_type}/{package_name}/versions?page_limit=99&page={page}', {
             org: org,
             package_type: package_type,
-            package_name: package_name
+            package_name: package_name,
+            page: page
         });
     }
 }
